@@ -117,3 +117,33 @@ def test_exact_85th_percentile_is_eligible():
     signal = evaluate_sell_window(market, portfolio, lots, default_config())
 
     assert signal.status == "SELL_WINDOW"
+
+
+def test_concentration_breach_detection():
+    config = MonitorConfig(
+        lookback_days=180,
+        percentile_threshold=0.85,
+        high_distance_threshold=0.05,
+        min_gain_for_alert=0.10,
+        cooldown_days=30,
+        notification_enabled=True,
+        currency="EUR",
+        max_position_value_eur=10000.0,
+        fx_eur_usd=1.08,
+    )
+    market = make_market_metrics(percentile_180d=0.40, distance_to_high=Decimal("-0.20"))
+    portfolio = PortfolioMetrics(
+        total_quantity=Decimal("100"),
+        weighted_average_cost_usd=Decimal("200"),
+        market_value_usd=Decimal("25000"),
+        market_value_eur=Decimal("23148.15"),
+        cost_value_usd=Decimal("20000"),
+        unrealised_gain_percent=0.25,
+        profitable_lot_count=1,
+        high_gain_lot_count=1,
+    )
+    lots = make_lot_metrics(profits=[0.25])
+    signal = evaluate_sell_window(market, portfolio, lots, config)
+
+    assert signal.is_concentration_breached is True
+    assert "exceeds threshold" in signal.concentration_reason

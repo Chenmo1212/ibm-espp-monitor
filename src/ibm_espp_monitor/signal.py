@@ -12,6 +12,8 @@ class SellSignal:
     market_metrics: MarketMetrics
     portfolio_metrics: PortfolioMetrics
     eligible_lots: list[LotMetric]
+    is_concentration_breached: bool = False
+    concentration_reason: str = ""
 
 
 def evaluate_sell_window(
@@ -42,6 +44,17 @@ def evaluate_sell_window(
     reasons.append(f"50-day MA >= 200-day MA: {'yes' if market.ma_50d_usd >= market.ma_200d_usd else 'no'} (${market.ma_50d_usd:.2f} vs ${market.ma_200d_usd:.2f})")
     reasons.append(f"Lots with >= {config.min_gain_for_alert * 100:.0f}% gain: {len(eligible_lots)}/{len(lot_metrics)}")
 
+    # Check concentration threshold in EUR
+    is_concentration_breached = False
+    concentration_reason = ""
+    if config.max_position_value_eur > 0:
+        total_eur = float(portfolio.market_value_eur)
+        if total_eur > config.max_position_value_eur:
+            is_concentration_breached = True
+            concentration_reason = (
+                f"Position value €{total_eur:,.2f} exceeds threshold €{config.max_position_value_eur:,.2f}"
+            )
+
     if market_high and trend_positive and eligible_lots:
         status = "SELL_WINDOW"
     elif market_high or trend_positive:
@@ -55,4 +68,6 @@ def evaluate_sell_window(
         market_metrics=market,
         portfolio_metrics=portfolio,
         eligible_lots=eligible_lots,
+        is_concentration_breached=is_concentration_breached,
+        concentration_reason=concentration_reason,
     )

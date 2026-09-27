@@ -9,6 +9,14 @@ cooldown_days = 30
 
 [portfolio]
 currency = "EUR"
+max_position_value_eur = 10000.0
+fx_eur_usd = 1.08
+concentration_cooldown_days = 90
+
+[tax]
+cgt_rate = 0.33
+cgt_annual_allowance_eur = 1270.0
+cgt_used_allowance_eur = 0.0
 
 [notification]
 enabled = true

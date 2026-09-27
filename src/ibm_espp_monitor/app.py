@@ -12,7 +12,8 @@ from ibm_espp_monitor.notifications import (
     ConsoleNotifier,
     Notifier,
     TelegramNotifier,
-    should_notify,
+    should_notify_concentration,
+    should_notify_sell_window,
 )
 from ibm_espp_monitor.portfolio import load_lots
 from ibm_espp_monitor.portfolio_metrics import (
@@ -20,7 +21,7 @@ from ibm_espp_monitor.portfolio_metrics import (
     calculate_portfolio_metrics,
 )
 from ibm_espp_monitor.providers.market_provider import YahooMarketProvider
-from ibm_espp_monitor.report import render_report
+from ibm_espp_monitor.report import render_concentration_alert, render_report
 from ibm_espp_monitor.signal import SellSignal, evaluate_sell_window
 from ibm_espp_monitor.state import (
     load_state,
@@ -60,11 +61,15 @@ def run_once(
     lot_metrics = calculate_lot_metrics(
         lots,
         latest.close_usd,
+        fx_eur_usd=config.fx_eur_usd,
+        cgt_rate=config.cgt_rate,
     )
 
     portfolio_metrics = calculate_portfolio_metrics(
         lot_metrics,
         min_high_gain=config.min_gain_for_alert,
+        fx_eur_usd=config.fx_eur_usd,
+        cgt_rate=config.cgt_rate,
     )
 
     signal = evaluate_sell_window(
@@ -74,22 +79,54 @@ def run_once(
         config,
     )
 
-    report = render_report(signal, current_time)
+    report = render_report(signal, current_time, config)
 
     if dry_run:
         print(report)
+        if signal.is_concentration_breached:
+            print("\n" + "=" * 40 + "\n")
+            print(render_concentration_alert(signal, current_time, config))
         return signal
 
     # Print to stdout
     print(report)
+    if signal.is_concentration_breached:
+        print("\n" + "=" * 40 + "\n")
+        print(render_concentration_alert(signal, current_time, config))
 
     if config.notification_enabled:
         state = load_state(state_path)
         active_notifier = notifier or TelegramNotifier()
 
-        if should_notify(signal, state, current_time, config.cooldown_days):
+        # 1. Check Concentration Alert (independent rule & cooldown)
+        if should_notify_concentration(
+            signal,
+            state,
+            current_time,
+            config.concentration_cooldown_days,
+        ):
+            conc_report = render_concentration_alert(signal, current_time, config)
+            active_notifier.send(conc_report)
+            state = record_notification(
+                state,
+                current_time,
+                alert_type="CONCENTRATION_ALERT",
+            )
+            save_state(state_path, state)
+
+        # 2. Check Sell Window Alert (price & lot criteria)
+        if should_notify_sell_window(
+            signal,
+            state,
+            current_time,
+            config.cooldown_days,
+        ):
             active_notifier.send(report)
-            updated_state = record_notification(state, current_time)
-            save_state(state_path, updated_state)
+            state = record_notification(
+                state,
+                current_time,
+                alert_type="SELL_WINDOW",
+            )
+            save_state(state_path, state)
 
     return signal

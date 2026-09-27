@@ -51,5 +51,6 @@ def test_run_once_evaluates_portfolio_without_sending_trade(tmp_path):
     )
 
     assert signal.status == "SELL_WINDOW"
-    assert len(notifier.messages) == 1
-    assert "No trade was executed." in notifier.messages[0]
+    # When position value > 10,000 EUR, both Concentration Alert and Sell Window Alert are sent
+    assert len(notifier.messages) >= 1
+    assert any("No trade was executed." in msg for msg in notifier.messages)

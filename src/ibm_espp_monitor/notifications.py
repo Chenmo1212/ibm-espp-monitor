@@ -12,7 +12,7 @@ class Notifier(Protocol):
         ...
 
 
-def should_notify(
+def should_notify_sell_window(
     signal: SellSignal,
     state: NotificationState,
     now: datetime,
@@ -23,6 +23,29 @@ def should_notify(
     if state.last_sell_window_alert is None:
         return True
     return now - state.last_sell_window_alert >= timedelta(days=cooldown_days)
+
+
+def should_notify_concentration(
+    signal: SellSignal,
+    state: NotificationState,
+    now: datetime,
+    cooldown_days: int,
+) -> bool:
+    if not signal.is_concentration_breached:
+        return False
+    if state.last_concentration_alert is None:
+        return True
+    return now - state.last_concentration_alert >= timedelta(days=cooldown_days)
+
+
+def should_notify(
+    signal: SellSignal,
+    state: NotificationState,
+    now: datetime,
+    cooldown_days: int,
+) -> bool:
+    """Backward compatibility alias for sell window notification check."""
+    return should_notify_sell_window(signal, state, now, cooldown_days)
 
 
 class TelegramNotifier(Notifier):

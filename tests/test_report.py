@@ -66,3 +66,16 @@ def test_report_contains_decision_relevant_metrics():
     assert "200-day MA" in report
     assert "Not a price prediction" in report
     assert "No trade was executed." in report
+    assert "CGT" in report
+    assert "税务申报期限提醒" in report
+    assert "建议分批卖出" in report
+
+
+def test_tax_deadline_december_vs_regular():
+    from ibm_espp_monitor.report import get_tax_deadline_reminder
+
+    oct_reminder = get_tax_deadline_reminder(datetime(2026, 10, 15))
+    assert "当年12月15日前" in oct_reminder
+
+    dec_reminder = get_tax_deadline_reminder(datetime(2026, 12, 10))
+    assert "次年(2027年)1月31日前" in dec_reminder

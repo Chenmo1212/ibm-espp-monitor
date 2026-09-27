@@ -78,3 +78,45 @@ def test_fake_notifier_receives_rendered_report():
     notifier.send("IBM SELL MONITOR\nSignal: SELL_WINDOW")
 
     assert notifier.messages == ["IBM SELL MONITOR\nSignal: SELL_WINDOW"]
+
+
+def test_concentration_cooldown_behavior():
+    from ibm_espp_monitor.notifications import should_notify_concentration
+
+    m = MarketMetrics(
+        current_price_usd=Decimal("275.00"),
+        percentile_180d=0.50,
+        high_180d_usd=Decimal("281.00"),
+        distance_to_high=Decimal("-0.05"),
+        ma_50d_usd=Decimal("250.00"),
+        ma_200d_usd=Decimal("225.00"),
+    )
+    p = PortfolioMetrics(
+        total_quantity=Decimal("100"),
+        weighted_average_cost_usd=Decimal("200"),
+        market_value_usd=Decimal("27500"),
+        cost_value_usd=Decimal("20000"),
+        unrealised_gain_percent=0.375,
+        profitable_lot_count=1,
+        high_gain_lot_count=1,
+    )
+    signal = SellSignal(
+        status="HOLD",
+        reasons=[],
+        market_metrics=m,
+        portfolio_metrics=p,
+        eligible_lots=[],
+        is_concentration_breached=True,
+    )
+
+    # First alert when state has no record
+    state = NotificationState()
+    assert should_notify_concentration(signal, state, datetime(2026, 9, 27), 90) is True
+
+    # Within cooldown
+    state = NotificationState(last_concentration_alert=datetime(2026, 8, 1))
+    assert should_notify_concentration(signal, state, datetime(2026, 9, 27), 90) is False
+
+    # After 90 days cooldown
+    state = NotificationState(last_concentration_alert=datetime(2026, 5, 1))
+    assert should_notify_concentration(signal, state, datetime(2026, 9, 27), 90) is True
