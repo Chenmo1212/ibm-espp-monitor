@@ -20,7 +20,7 @@ from ibm_espp_monitor.portfolio_metrics import (
     calculate_lot_metrics,
     calculate_portfolio_metrics,
 )
-from ibm_espp_monitor.providers.market_provider import YahooMarketProvider
+from ibm_espp_monitor.providers.market_provider import YahooMarketProvider, get_live_eur_usd
 from ibm_espp_monitor.report import render_concentration_alert, render_report
 from ibm_espp_monitor.signal import SellSignal, evaluate_sell_window
 from ibm_espp_monitor.state import (
@@ -45,6 +45,9 @@ def run_once(
 
     provider = market_provider or YahooMarketProvider()
 
+    # Use live EUR/USD rate; fall back to config value if fetch fails
+    fx_eur_usd = get_live_eur_usd(fallback=config.fx_eur_usd)
+
     history = get_normalized_history(
         provider,
         "IBM",
@@ -61,7 +64,7 @@ def run_once(
     lot_metrics = calculate_lot_metrics(
         lots,
         latest.close_usd,
-        fx_eur_usd=config.fx_eur_usd,
+        fx_eur_usd=fx_eur_usd,
         cgt_rate=config.cgt_rate,
     )
 
@@ -72,7 +75,7 @@ def run_once(
     portfolio_metrics = calculate_portfolio_metrics(
         lot_metrics,
         min_high_gain=config.min_gain_for_alert,
-        fx_eur_usd=config.fx_eur_usd,
+        fx_eur_usd=fx_eur_usd,
         cgt_rate=config.cgt_rate,
         remaining_cgt_allowance_eur=remaining_allowance,
     )
@@ -84,7 +87,7 @@ def run_once(
         config,
     )
 
-    report = render_report(signal, current_time, config)
+    report = render_report(signal, current_time, config, fx_eur_usd=fx_eur_usd)
 
     if dry_run:
         print(report)

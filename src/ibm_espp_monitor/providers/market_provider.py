@@ -10,6 +10,26 @@ from ibm_espp_monitor.market_data import (
 )
 
 
+def get_live_eur_usd(fallback: float = 1.08) -> float:
+    """Fetch the current EUR/USD rate from Yahoo Finance (EURUSD=X).
+    Returns *fallback* if the request fails for any reason."""
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/EURUSD=X?range=5d&interval=1d"
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; IBM-ESPP-Monitor/1.0)"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        rate = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+        value = float(rate)
+        if value > 0:
+            return value
+    except Exception:
+        pass
+    return fallback
+
+
 class YahooMarketProvider(MarketDataProvider):
     """Retrieves standard historical and quote market data from Yahoo Finance API without external SDK."""
 

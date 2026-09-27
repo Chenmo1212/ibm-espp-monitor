@@ -2,10 +2,15 @@
 """
 Lightweight container scheduler for IBM ESPP Monitor.
 Runs on startup, then executes daily after US market close (21:30 UTC on Monday-Friday).
+
+If TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set, the interactive Telegram bot
+is started in a background thread so commands (/check, /lots, /set, etc.) are
+available at all times without interfering with the scheduled runs.
 """
 
 import os
 import sys
+import threading
 import time
 from datetime import datetime, timezone, timedelta
 from ibm_espp_monitor.app import run_once
@@ -58,8 +63,32 @@ def get_seconds_until_next_run(target_hour_utc: int = 21, target_minute_utc: int
     return (candidate - now).total_seconds()
 
 
+def _start_bot_thread() -> None:
+    """Start the Telegram bot in a daemon thread if credentials are available."""
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        print("Bot credentials not set — interactive bot will not start.", flush=True)
+        return
+
+    def _run() -> None:
+        try:
+            from ibm_espp_monitor.telegram_bot import run_bot
+            run_bot()
+        except Exception as e:
+            print(f"[Bot] Fatal error: {e}", file=sys.stderr, flush=True)
+
+    t = threading.Thread(target=_run, name="telegram-bot", daemon=True)
+    t.start()
+    print("Telegram bot thread started.", flush=True)
+
+
 def main() -> None:
     print("=== IBM ESPP Portfolio Monitor Daemon Started ===", flush=True)
+
+    # Start interactive bot alongside the scheduler
+    _start_bot_thread()
+
     # Run once immediately on container startup
     execute_job()
 

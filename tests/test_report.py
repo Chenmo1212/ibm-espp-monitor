@@ -67,18 +67,18 @@ def test_report_contains_decision_relevant_metrics():
     assert "Not a price prediction" in report
     assert "No trade was executed." in report
     assert "CGT" in report
-    assert "税务申报期限提醒" in report
-    assert "建议分批卖出" in report
+    assert "CGT deadline reminder" in report
+    assert "Consider selling in tranches" in report
 
 
 def test_tax_deadline_december_vs_regular():
     from ibm_espp_monitor.report import get_tax_deadline_reminder
 
     oct_reminder = get_tax_deadline_reminder(datetime(2026, 10, 15))
-    assert "当年12月15日前" in oct_reminder
+    assert "15 Dec" in oct_reminder
 
     dec_reminder = get_tax_deadline_reminder(datetime(2026, 12, 10))
-    assert "次年(2027年)1月31日前" in dec_reminder
+    assert "31 Jan 2027" in dec_reminder
 
 
 def test_post_tax_gain_deducts_annual_allowance():
@@ -127,4 +127,4 @@ def test_post_tax_gain_deducts_annual_allowance():
 
     report = render_report(signal, datetime(2026, 9, 27, 18, 0), config)
     assert "Pre-tax €2,755.53 | Est. Post-tax €2,265.31" in report
-    assert "此额度需自行核实是否已被其他资产收益占用" in report
+    assert "cgt_used_allowance_eur must be maintained manually" in report

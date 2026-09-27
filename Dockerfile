@@ -13,7 +13,7 @@ COPY config/ config/
 COPY data/ data_default/
 COPY src/ src/
 
-# Create data directory permissions for persistent volume
+# Create data directory with correct permissions for persistent volume
 RUN mkdir -p /app/data && chown -R appuser:appuser /app
 
 USER 1001

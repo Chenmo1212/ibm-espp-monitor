@@ -9,16 +9,17 @@ def get_tax_deadline_reminder(as_of: datetime) -> str:
     # 1 Jan - 30 Nov -> payment due 15 Dec of current tax year
     # 1 Dec - 31 Dec -> payment due 31 Jan of following year
     if as_of.month <= 11:
-        return f"税务申报期限提醒: 1月-11月发生的卖出，须于当年12月15日前完成CGT缴税。"
+        return f"CGT deadline reminder: Disposals in Jan–Nov must be paid by 15 Dec of the same tax year."
     else:
         next_year = as_of.year + 1
-        return f"税务申报期限提醒: 12月发生的卖出，须于次年({next_year}年)1月31日前完成CGT缴税。"
+        return f"CGT deadline reminder: Disposals in Dec must be paid by 31 Jan {next_year}."
 
 
 def render_report(
     signal: SellSignal,
     as_of: datetime,
     config: MonitorConfig | None = None,
+    fx_eur_usd: float | None = None,
 ) -> str:
     m = signal.market_metrics
     p = signal.portfolio_metrics
@@ -36,6 +37,8 @@ def render_report(
     lines.append(f"200-day MA: ${m.ma_200d_usd:.2f}")
     lines.append("")
     lines.append("Portfolio")
+    if fx_eur_usd is not None:
+        lines.append(f"EUR/USD rate: {fx_eur_usd:.4f} (live)")
     lines.append(f"Shares: {p.total_quantity}")
     lines.append(f"Market value: €{p.market_value_eur:,.2f} (${p.market_value_usd:,.2f})")
     lines.append(f"Weighted average cost: ${p.weighted_average_cost_usd:.2f}")
@@ -78,10 +81,10 @@ def render_report(
                 f"- Eligible lots gain: Pre-tax €{eligible_gain_eur:,.2f} | Est. Post-tax €{post_tax_eligible_gain:,.2f}"
             )
             if float(eligible_gain_eur) > remaining_allowance:
-                lines.append("  ⚠️ 提示: 建议卖出批次收益超出年度免税额，超出部分需缴纳 33% 爱尔兰资本利得税 (CGT)。")
+                lines.append("  ⚠️  Note: Eligible lot gains exceed the annual exemption — the surplus will be subject to 33% Irish CGT.")
             else:
-                lines.append("  ✅ 提示: 建议卖出批次收益在剩余免税额度内。")
-        lines.append("  ℹ️ 提示: cgt_used_allowance_eur 需由用户手动维护；系统无法感知本ESPP之外的其他资产交易，此额度需自行核实是否已被其他资产收益占用。")
+                lines.append("  ✅  Note: Eligible lot gains are within the remaining annual exemption.")
+        lines.append("  ℹ️  Note: cgt_used_allowance_eur must be maintained manually. The system has no visibility of disposals outside this ESPP — verify that the allowance has not already been consumed by other assets.")
 
     lines.append("")
     lines.append(f"Signal: {signal.status}")
@@ -93,7 +96,7 @@ def render_report(
     if signal.status == "SELL_WINDOW":
         lines.append("")
         lines.append("Execution Guidance:")
-        lines.append("- 💡 建议分批卖出 (例如先卖出 1/3)，若价格继续创出新高可保留剩余批次继续观察。")
+        lines.append("- 💡 Consider selling in tranches (e.g. sell 1/3 first). Retain remaining lots if price continues to make new highs.")
 
     lines.append("")
     lines.append(f"Tax Deadline: {get_tax_deadline_reminder(as_of)}")
@@ -119,7 +122,7 @@ def render_concentration_alert(
     lines.append(f"Excess Amount: €{float(p.market_value_eur) - config.max_position_value_eur:,.2f}")
     lines.append("")
     lines.append("Recommendation:")
-    lines.append("- ⚠️ 单一标的持仓市值已超过风险上限，建议无视技术择时信号，优先减仓至目标限额以下以控制组合集中度风险。")
+    lines.append("- ⚠️  Position size exceeds the concentration limit. Regardless of technical timing signals, consider reducing the position below the configured threshold to manage single-stock concentration risk.")
     lines.append("")
     lines.append(f"Tax Deadline: {get_tax_deadline_reminder(as_of)}")
     return "\n".join(lines)

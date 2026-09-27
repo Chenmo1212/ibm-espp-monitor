@@ -4,10 +4,19 @@ primary_region = 'lhr'
 [build]
   dockerfile = 'Dockerfile'
 
+# Persistent volume: stores espp_lots.csv and notification_state.json
 [mounts]
   source = 'espp_data'
   destination = '/app/data'
   initial_size = '1gb'
+
+# Secrets (set via: flyctl secrets set TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=...)
+[env]
+  PYTHONUNBUFFERED = "1"
+  PYTHONPATH = "/app/src"
+  CONFIG_PATH = "config/default.toml"
+  LOTS_PATH = "data/espp_lots.csv"
+  STATE_PATH = "data/notification_state.json"
 
 [[vm]]
   cpu_kind = 'shared'

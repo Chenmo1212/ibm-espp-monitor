@@ -16,7 +16,21 @@ def main() -> None:
         action="store_true",
         help="Evaluate and print report without sending notifications or updating state",
     )
+    parser.add_argument(
+        "--bot",
+        action="store_true",
+        help="Start the interactive Telegram bot (long-polling mode)",
+    )
     args = parser.parse_args()
+
+    if args.bot:
+        try:
+            from ibm_espp_monitor.telegram_bot import run_bot
+            run_bot()
+        except Exception as e:
+            print(f"Bot error: {e}", file=sys.stderr)
+            sys.exit(1)
+        return
 
     try:
         run_once(config_path=args.config, dry_run=args.dry_run)
