@@ -9,7 +9,7 @@ cooldown_days = 30
 
 [portfolio]
 currency = "EUR"
-max_position_value_eur = 10000.0
+max_position_value_eur = 12000.0
 fx_eur_usd = 1.08
 concentration_cooldown_days = 90
 
