@@ -63,39 +63,39 @@ Each scheduled run sends a Telegram notification in the following format:
 
 ```
 IBM SELL MONITOR
-As of: 2026-09-27 18:18
+As of: YYYY-MM-DD HH:MM
 
 Market
-Current price: $225.51
-180-day percentile: 15.0%
-180-day high: $326.89
-Distance to 180-day high: -31.0%
-50-day MA: $230.16
-200-day MA: $254.81
+Current price: $XXX.XX
+180-day percentile: XX.X%
+180-day high: $XXX.XX
+Distance to 180-day high: -XX.X%
+50-day MA: $XXX.XX
+200-day MA: $XXX.XX
 
 Portfolio
-EUR/USD rate: 1.1401 (live)
-Shares: 52.52768
-Market value: €10,389.89 ($11,845.52)
-Weighted average cost: $216.14
-Unrealised gain: +4.3%
-Gain (Pre-tax / Est. Post-tax @33% CGT): €431.55 / €431.55
-Lots >= 10% gain: 5/9
+EUR/USD rate: X.XXXX (live)
+Shares: XX.XXXXX
+Market value: €XX,XXX.XX ($XX,XXX.XX)
+Weighted average cost: $XXX.XX
+Unrealised gain: +X.X%
+Gain (Pre-tax / Est. Post-tax @33% CGT): €XXX.XX / €XXX.XX
+Lots >= 10% gain: X/X
 
 Irish CGT Tax Summary:
-- Annual allowance: €1,270.00 (Remaining: €1,270.00, Used: €0.00)
-- Eligible lots gain: Pre-tax €598.19 | Est. Post-tax €598.19
+- Annual allowance: €1,270.00 (Remaining: €X,XXX.XX, Used: €X.XX)
+- Eligible lots gain: Pre-tax €XXX.XX | Est. Post-tax €XXX.XX
   ✅  Eligible gains within annual exemption.
   ℹ️  Verify allowance against other disposals — maintained manually.
 
 Signal: HOLD
 
 Reasons:
-- 180-day price percentile: 15.0% (threshold: 85.0%)
-- Distance from 180-day high: -31.0% (threshold: -5.0%)
-- Current price >= 50-day MA: no ($225.51 vs $230.16)
-- 50-day MA >= 200-day MA: no ($230.16 vs $254.81)
-- Lots with >= 10% gain: 5/20
+- 180-day price percentile: XX.X% (threshold: 85.0%)
+- Distance from 180-day high: -XX.X% (threshold: -5.0%)
+- Current price >= 50-day MA: no ($XXX.XX vs $XXX.XX)
+- 50-day MA >= 200-day MA: no ($XXX.XX vs $XXX.XX)
+- Lots with >= 10% gain: X/X
 
 CGT deadline reminder: Disposals in Jan–Nov must be paid by 15 Dec of the same tax year.
 Not a price prediction.
