@@ -1,0 +1,14 @@
+[market]
+lookback_days = 180
+
+[signal]
+percentile_threshold = 0.85
+high_distance_threshold = 0.05
+min_gain_for_alert = 0.10
+cooldown_days = 30
+
+[portfolio]
+currency = "EUR"
+
+[notification]
+enabled = true
