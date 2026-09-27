@@ -58,18 +58,30 @@ def render_report(
             0.0,
             config.cgt_annual_allowance_eur - config.cgt_used_allowance_eur,
         )
+        rem_allowance_dec = Decimal(str(remaining_allowance))
         tax_mult = Decimal(str(1.0 - config.cgt_rate))
+        if eligible_gain_eur > Decimal("0"):
+            tax_free_portion = min(eligible_gain_eur, rem_allowance_dec)
+            taxable_gain = max(Decimal("0"), eligible_gain_eur - rem_allowance_dec)
+            post_tax_eligible_gain = tax_free_portion + taxable_gain * tax_mult
+        else:
+            post_tax_eligible_gain = eligible_gain_eur
+
         lines.append("")
         lines.append("Irish CGT Tax Summary:")
-        lines.append(f"- Annual allowance: €{config.cgt_annual_allowance_eur:,.2f} (Remaining: €{remaining_allowance:,.2f})")
+        lines.append(
+            f"- Annual allowance: €{config.cgt_annual_allowance_eur:,.2f} "
+            f"(Remaining: €{remaining_allowance:,.2f}, Used: €{config.cgt_used_allowance_eur:,.2f})"
+        )
         if eligible_count > 0:
             lines.append(
-                f"- Eligible lots gain: Pre-tax €{eligible_gain_eur:,.2f} | Est. Post-tax €{eligible_gain_eur * tax_mult:,.2f}"
+                f"- Eligible lots gain: Pre-tax €{eligible_gain_eur:,.2f} | Est. Post-tax €{post_tax_eligible_gain:,.2f}"
             )
             if float(eligible_gain_eur) > remaining_allowance:
                 lines.append("  ⚠️ 提示: 建议卖出批次收益超出年度免税额，超出部分需缴纳 33% 爱尔兰资本利得税 (CGT)。")
             else:
                 lines.append("  ✅ 提示: 建议卖出批次收益在剩余免税额度内。")
+        lines.append("  ℹ️ 提示: cgt_used_allowance_eur 需由用户手动维护；系统无法感知本ESPP之外的其他资产交易，此额度需自行核实是否已被其他资产收益占用。")
 
     lines.append("")
     lines.append(f"Signal: {signal.status}")

@@ -70,6 +70,7 @@ def calculate_portfolio_metrics(
     min_high_gain: float = 0.10,
     fx_eur_usd: float = 1.08,
     cgt_rate: float = 0.33,
+    remaining_cgt_allowance_eur: float = 0.0,
 ) -> PortfolioMetrics:
     if not lot_metrics:
         raise ValueError("Cannot calculate portfolio metrics for empty lot list")
@@ -86,9 +87,12 @@ def calculate_portfolio_metrics(
     total_gain_usd = market_val - cost_val
     total_gain_eur = total_gain_usd / fx_rate
 
+    allowance_dec = Decimal(str(max(0.0, remaining_cgt_allowance_eur)))
     tax_multiplier = Decimal(str(1.0 - cgt_rate))
     if total_gain_eur > Decimal("0"):
-        total_post_tax_gain_eur = total_gain_eur * tax_multiplier
+        tax_free_portion = min(total_gain_eur, allowance_dec)
+        taxable_gain = max(Decimal("0"), total_gain_eur - allowance_dec)
+        total_post_tax_gain_eur = tax_free_portion + taxable_gain * tax_multiplier
     else:
         total_post_tax_gain_eur = total_gain_eur
 

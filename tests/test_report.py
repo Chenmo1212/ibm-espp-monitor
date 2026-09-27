@@ -79,3 +79,52 @@ def test_tax_deadline_december_vs_regular():
 
     dec_reminder = get_tax_deadline_reminder(datetime(2026, 12, 10))
     assert "次年(2027年)1月31日前" in dec_reminder
+
+
+def test_post_tax_gain_deducts_annual_allowance():
+    from ibm_espp_monitor.config import MonitorConfig
+
+    config = MonitorConfig(
+        lookback_days=180,
+        percentile_threshold=0.85,
+        high_distance_threshold=0.05,
+        min_gain_for_alert=0.10,
+        cooldown_days=30,
+        notification_enabled=True,
+        currency="EUR",
+        cgt_rate=0.33,
+        cgt_annual_allowance_eur=1270.0,
+        cgt_used_allowance_eur=0.0,
+    )
+    sig = make_sell_signal()
+    # lot gain_eur is Decimal("1211.96") - cost ~ 4.40712*172.87/1.08...
+    # Let's set an exact eligible lot with gain_eur = 2755.53
+    lot = EsppLot(
+        allocation_date=date(2026, 7, 23),
+        instrument="Purchase Shares",
+        contribution_type="Purchase",
+        cost_basis_usd=Decimal("100.00"),
+        quantity=Decimal("10.0"),
+        available_from=date(2026, 7, 23),
+    )
+    # With gain_eur = Decimal("2755.53"), post_tax should be 1270 + (2755.53 - 1270) * 0.67 = 2265.3051 -> 2,265.31
+    eligible_lots = [
+        LotMetric(
+            lot=lot,
+            market_value_usd=Decimal("3000.00"),
+            gain_percent=0.50,
+            profitable=True,
+            gain_eur=Decimal("2755.53"),
+        )
+    ]
+    signal = SellSignal(
+        status="SELL_WINDOW",
+        reasons=[],
+        market_metrics=sig.market_metrics,
+        portfolio_metrics=sig.portfolio_metrics,
+        eligible_lots=eligible_lots,
+    )
+
+    report = render_report(signal, datetime(2026, 9, 27, 18, 0), config)
+    assert "Pre-tax €2,755.53 | Est. Post-tax €2,265.31" in report
+    assert "此额度需自行核实是否已被其他资产收益占用" in report

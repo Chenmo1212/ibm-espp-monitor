@@ -65,11 +65,16 @@ def run_once(
         cgt_rate=config.cgt_rate,
     )
 
+    remaining_allowance = max(
+        0.0,
+        config.cgt_annual_allowance_eur - config.cgt_used_allowance_eur,
+    )
     portfolio_metrics = calculate_portfolio_metrics(
         lot_metrics,
         min_high_gain=config.min_gain_for_alert,
         fx_eur_usd=config.fx_eur_usd,
         cgt_rate=config.cgt_rate,
+        remaining_cgt_allowance_eur=remaining_allowance,
     )
 
     signal = evaluate_sell_window(
