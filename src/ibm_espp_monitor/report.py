@@ -81,10 +81,10 @@ def render_report(
                 f"- Eligible lots gain: Pre-tax €{eligible_gain_eur:,.2f} | Est. Post-tax €{post_tax_eligible_gain:,.2f}"
             )
             if float(eligible_gain_eur) > remaining_allowance:
-                lines.append("  ⚠️  Note: Eligible lot gains exceed the annual exemption — the surplus will be subject to 33% Irish CGT.")
+                lines.append("  ⚠️  Surplus above annual exemption — subject to 33% CGT.")
             else:
-                lines.append("  ✅  Note: Eligible lot gains are within the remaining annual exemption.")
-        lines.append("  ℹ️  Note: cgt_used_allowance_eur must be maintained manually. The system has no visibility of disposals outside this ESPP — verify that the allowance has not already been consumed by other assets.")
+                lines.append("  ✅  Eligible gains within annual exemption.")
+        lines.append("  ℹ️  Verify allowance against other disposals — maintained manually.")
 
     lines.append("")
     lines.append(f"Signal: {signal.status}")
@@ -99,10 +99,8 @@ def render_report(
         lines.append("- 💡 Consider selling in tranches (e.g. sell 1/3 first). Retain remaining lots if price continues to make new highs.")
 
     lines.append("")
-    lines.append(f"Tax Deadline: {get_tax_deadline_reminder(as_of)}")
-    lines.append("")
-    lines.append("This is a relative market/portfolio condition, not a prediction of IBM's future price (Not a price prediction).")
-    lines.append("No trade was executed.")
+    lines.append(get_tax_deadline_reminder(as_of))
+    lines.append("Not a price prediction.")
 
     return "\n".join(lines)
 

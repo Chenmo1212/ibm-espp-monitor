@@ -15,4 +15,4 @@ def test_cli_dry_run_prints_report():
 
     assert result.returncode == 0
     assert "IBM SELL MONITOR" in result.stdout
-    assert "No trade was executed." in result.stdout
+    assert "Not a price prediction." in result.stdout

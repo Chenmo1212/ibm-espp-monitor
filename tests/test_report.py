@@ -65,7 +65,7 @@ def test_report_contains_decision_relevant_metrics():
     assert "50-day MA" in report
     assert "200-day MA" in report
     assert "Not a price prediction" in report
-    assert "No trade was executed." in report
+    assert "Not a price prediction." in report
     assert "CGT" in report
     assert "CGT deadline reminder" in report
     assert "Consider selling in tranches" in report
@@ -127,4 +127,4 @@ def test_post_tax_gain_deducts_annual_allowance():
 
     report = render_report(signal, datetime(2026, 9, 27, 18, 0), config)
     assert "Pre-tax €2,755.53 | Est. Post-tax €2,265.31" in report
-    assert "cgt_used_allowance_eur must be maintained manually" in report
+    assert "Verify allowance against other disposals — maintained manually." in report
