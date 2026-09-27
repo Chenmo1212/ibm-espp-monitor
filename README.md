@@ -51,6 +51,11 @@ A local, deterministic monitor for IBM Employee Stock Purchase Plan (ESPP) holdi
 ### Scheduled Runs
 See [`docs/ibm-espp-monitor.md`](docs/ibm-espp-monitor.md) for launchd (macOS) and cron (Linux) scheduling guides.
 
+## How Notifications Work
+
+- 🇬🇧 [Notification Logic (English)](docs/notification-logic.md) — explains the sell signal evaluation and alert rules for readers with no investing background
+- 🇨🇳 [通知逻辑说明（中文）](docs/notification-logic-zh.md) — 面向无股票投资背景读者的中文说明
+
 ## Running Tests
 ```bash
 source .venv/bin/activate
