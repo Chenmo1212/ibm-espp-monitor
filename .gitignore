@@ -3,4 +3,5 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .envdata/notification_state.json
-data/espp_lots.csv
+data/*
+.env
